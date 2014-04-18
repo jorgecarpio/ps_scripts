@@ -29,36 +29,104 @@
       </header>
       <section>
         <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+<a name="powershell-scripts-and-techniques" class="anchor" href="#powershell-scripts-and-techniques"><span class="octicon octicon-link"></span></a>PowerShell Scripts and Techniques</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>Here is a set of PowerShell one-liners, scripts and techniques that I've found useful (but can't always keep on the tip of my tongue).  </p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<p>You'll need the Active Directory cmdlets for many of these.</p>
+
+<h2>
+<a name="list-all-the-windows-servers-in-a-domain-and-export-them-to-csv" class="anchor" href="#list-all-the-windows-servers-in-a-domain-and-export-them-to-csv"><span class="octicon octicon-link"></span></a>List all the Windows servers in a domain and export them to csv</h2>
+
+<pre><code>Get-ADComputer -Filter {OperatingSystem -Like "Windows *Server*"} -Properties * | Select-Object Name,OperatingSystem | Export-Csv AllServers.csv -NoTypeInformation -Encoding UTF8
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>Instead of csv, prints a table to standard out</p>
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<pre><code>Get-ADComputer -filter {(PasswordLastSet -le $date) -and (OperatingSystem -Like "Windows *Server*")} -Properties * | select-object Name,OperatingSystem,PasswordLastSet | Format-table Name,OperatingSystem,PasswordLastSet -Wrap -Auto
+</code></pre>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<h2>
+<a name="list-servers-who-have-computer-passwords-older-than-90-days" class="anchor" href="#list-servers-who-have-computer-passwords-older-than-90-days"><span class="octicon octicon-link"></span></a>List servers who have computer passwords older than 90 days</h2>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<p>These are ostensibly expired computer accounts.  Exports to csv. </p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<pre><code>$date = [DateTime]::Today.AddDays(-90)
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+Get-ADComputer -filter {(PasswordLastSet -le $date) -and (OperatingSystem -Like "Windows *Server*")} -Properties * | select-object Name,OperatingSystem,PasswordLastSet | Export-csv old.csv -NoTypeInformation -Encoding UTF8
+</code></pre>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<h2>
+<a name="query-active-directory-and-ping-results" class="anchor" href="#query-active-directory-and-ping-results"><span class="octicon octicon-link"></span></a>Query Active Directory and ping results</h2>
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<p>Useful as a filter, prior to performing an action on computers en masse thus preventing RPC errors.
+This pulls every computer; modify it appropriately.</p>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<pre><code>Import-Module active*
+$rtn = $null
+Get-ADComputer -Filter * | ForEach-Object {
+    $rtn = Test-Connection -CN $_.dnshostname -Count 1 -BufferSize 16 -Quiet
+    IF($rtn -match 'True') {write-host -ForegroundColor green $_.dnshostname}
+    ELSE {write-host -ForegroundColor red $_.dnshostname}
+}
+</code></pre>
+
+<h2>
+<a name="change-dns-servers-and-search-order-ip-and-mask-router" class="anchor" href="#change-dns-servers-and-search-order-ip-and-mask-router"><span class="octicon octicon-link"></span></a>Change DNS Servers and Search Order; IP and Mask; Router</h2>
+
+<pre><code>$wmi = Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
+$wmi.EnableStatic("192.168.1.10", "255.255.255.0")
+$wmi.SetGateways("192.168.1.1",1)
+$wmi.SetDNSServerSearchOrder("192.168.1.4")
+</code></pre>
+
+<h2>
+<a name="change-fsmo-roles" class="anchor" href="#change-fsmo-roles"><span class="octicon octicon-link"></span></a>Change FSMO Roles</h2>
+
+<p>Use <code>netdom query FSMO</code> to get FSMO roles.
+Of course, you should know what roles correspond to which numbers [0..4]</p>
+
+<pre><code>Move-ADDirectoryServerOperationMasterRole -identity "servername" -OperationMasterRole 0,1,2,3,4
+</code></pre>
+
+<h2>
+<a name="modify-an-attribute-or-attributes-of-all-users-in-an-ou" class="anchor" href="#modify-an-attribute-or-attributes-of-all-users-in-an-ou"><span class="octicon octicon-link"></span></a>Modify an attribute (or attributes) of all users in an OU</h2>
+
+<pre><code>Get-aduser –filter * -SearchBase "ou=YourOU,ou=YourSubOU,ou=YourSubSubOU,dc=yourdomain,dc=com" | set-aduser -PasswordNeverExpires $true
+</code></pre>
+
+<h2>
+<a name="find-a-users-ad-account-if-you-dont-know-their-account-name" class="anchor" href="#find-a-users-ad-account-if-you-dont-know-their-account-name"><span class="octicon octicon-link"></span></a>Find a user's AD account if you don't know their account name.</h2>
+
+<p>You only know their first and last name (i.e. Herman Melville).</p>
+
+<pre><code>Get-ADUser -Filter 'Name -like "*melville*"'
+</code></pre>
+
+<h2>
+<a name="add-an-ad-user-to-a-group" class="anchor" href="#add-an-ad-user-to-a-group"><span class="octicon octicon-link"></span></a>Add an AD user to a group</h2>
+
+<pre><code>Add-ADGroupMember 'Billing' hmelville
+</code></pre>
+
+<h2>
+<a name="verify-a-user-is-a-member-of-a-group" class="anchor" href="#verify-a-user-is-a-member-of-a-group"><span class="octicon octicon-link"></span></a>Verify a user is a member of a group</h2>
+
+<pre><code>get-adgroup 'Billing' | where name -like "*melville*"
+</code></pre>
+
+<h2>
+<a name="use-echoargsexe-to-verify-external-commands-prior-to-use" class="anchor" href="#use-echoargsexe-to-verify-external-commands-prior-to-use"><span class="octicon octicon-link"></span></a>Use echoargs.exe to verify external commands prior to use</h2>
+
+<p>Here a text file full of dnscmd generated zone information is parsed for a DNS server's zones.
+Then echoargs will show you how parameters are passed to the external command dnscmd.  You'll see if any extra quotes are passed, or not before executing mudged commands on your production servers.</p>
+
+<p>Dnscmd, if you care, is used here to add two secondary servers (192.168.1.5 and 192.168.1.6) to each zone for a server.</p>
+
+<p>Note the &amp; prior to the called command; keep this when finally invoking your command.</p>
+
+<pre><code>gc .\stuff.txt | select-string -Pattern "Primary" | foreach {$zone = ($_ -split '\s+')[1]; $callargs = @($server, "/ZoneResetSecondaries", $zone, "/SecureList", "192.168.1.5", "192.168.1.6", "/Notify") ;&amp;c:\bin\echoargs.exe dnscmd $callargs}
+</code></pre>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/jorgecarpio">jorgecarpio</a></p>
