@@ -1,34 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>PowerShell Scripts and Techniques by jorgecarpio</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <title>PowerShell Scripts and Techniques by jorgecarpio</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>PowerShell Scripts and Techniques</h1>
-        <p>powershell scripts</p>
+    <div id="container">
+      <div class="inner">
 
-        <p class="view"><a href="https://github.com/jorgecarpio/ps_scripts">View the Project on GitHub <small>jorgecarpio/ps_scripts</small></a></p>
+        <header>
+          <h1>PowerShell Scripts and Techniques</h1>
+          <h2>powershell scripts</h2>
+        </header>
 
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/jorgecarpio/ps_scripts/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/jorgecarpio/ps_scripts/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/jorgecarpio/ps_scripts" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
 
-        <ul>
-          <li><a href="https://github.com/jorgecarpio/ps_scripts/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/jorgecarpio/ps_scripts/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/jorgecarpio/ps_scripts">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <h3>
+        <hr>
+
+        <section id="main_content">
+          <h3>
 <a name="powershell-scripts-and-techniques" class="anchor" href="#powershell-scripts-and-techniques"><span class="octicon octicon-link"></span></a>PowerShell Scripts and Techniques</h3>
 
 <p>Here is a set of PowerShell one-liners, scripts and techniques that I've found useful (but can't always keep on the tip of my tongue).  </p>
@@ -38,12 +41,17 @@
 <h2>
 <a name="list-all-the-windows-servers-in-a-domain-and-export-them-to-csv" class="anchor" href="#list-all-the-windows-servers-in-a-domain-and-export-them-to-csv"><span class="octicon octicon-link"></span></a>List all the Windows servers in a domain and export them to csv</h2>
 
-<pre><code>Get-ADComputer -Filter {OperatingSystem -Like "Windows *Server*"} -Properties * | Select-Object Name,OperatingSystem | Export-Csv AllServers.csv -NoTypeInformation -Encoding UTF8
+<pre><code>Get-ADComputer -Filter {OperatingSystem -Like "Windows *Server*"}
+    -Properties * | Select-Object Name,OperatingSystem | 
+    Export-Csv AllServers.csv -NoTypeInformation -Encoding UTF8
 </code></pre>
 
 <p>Instead of csv, prints a table to standard out</p>
 
-<pre><code>Get-ADComputer -filter {(PasswordLastSet -le $date) -and (OperatingSystem -Like "Windows *Server*")} -Properties * | select-object Name,OperatingSystem,PasswordLastSet | Format-table Name,OperatingSystem,PasswordLastSet -Wrap -Auto
+<pre><code>Get-ADComputer -filter {(PasswordLastSet -le $date)
+    -and (OperatingSystem -Like "Windows *Server*")} 
+    -Properties * | select-object Name,OperatingSystem,PasswordLastSet 
+    | Format-table Name,OperatingSystem,PasswordLastSet -Wrap -Auto
 </code></pre>
 
 <h2>
@@ -53,7 +61,10 @@
 
 <pre><code>$date = [DateTime]::Today.AddDays(-90)
 
-Get-ADComputer -filter {(PasswordLastSet -le $date) -and (OperatingSystem -Like "Windows *Server*")} -Properties * | select-object Name,OperatingSystem,PasswordLastSet | Export-csv old.csv -NoTypeInformation -Encoding UTF8
+Get-ADComputer -filter {(PasswordLastSet -le $date) -and 
+    (OperatingSystem -Like "Windows *Server*")} -Properties * 
+    | select-object Name,OperatingSystem,PasswordLastSet 
+    | Export-csv old.csv -NoTypeInformation -Encoding UTF8
 </code></pre>
 
 <h2>
@@ -65,8 +76,10 @@ This pulls every computer; modify it appropriately.</p>
 <pre><code>Import-Module active*
 $rtn = $null
 Get-ADComputer -Filter * | ForEach-Object {
-    $rtn = Test-Connection -CN $_.dnshostname -Count 1 -BufferSize 16 -Quiet
-    IF($rtn -match 'True') {write-host -ForegroundColor green $_.dnshostname}
+    $rtn = Test-Connection -CN $_.dnshostname 
+    -Count 1 -BufferSize 16 -Quiet
+    IF($rtn -match 'True') {write-host -ForegroundColor 
+        green $_.dnshostname}
     ELSE {write-host -ForegroundColor red $_.dnshostname}
 }
 </code></pre>
@@ -74,7 +87,8 @@ Get-ADComputer -Filter * | ForEach-Object {
 <h2>
 <a name="change-dns-servers-and-search-order-ip-and-mask-router" class="anchor" href="#change-dns-servers-and-search-order-ip-and-mask-router"><span class="octicon octicon-link"></span></a>Change DNS Servers and Search Order; IP and Mask; Router</h2>
 
-<pre><code>$wmi = Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
+<pre><code>$wmi = Get-WmiObject win32_networkadapterconfiguration 
+    -filter "ipenabled = 'true'"
 $wmi.EnableStatic("192.168.1.10", "255.255.255.0")
 $wmi.SetGateways("192.168.1.1",1)
 $wmi.SetDNSServerSearchOrder("192.168.1.4")
@@ -86,13 +100,16 @@ $wmi.SetDNSServerSearchOrder("192.168.1.4")
 <p>Use <code>netdom query FSMO</code> to get FSMO roles.
 Of course, you should know what roles correspond to which numbers [0..4]</p>
 
-<pre><code>Move-ADDirectoryServerOperationMasterRole -identity "servername" -OperationMasterRole 0,1,2,3,4
+<pre><code>Move-ADDirectoryServerOperationMasterRole -identity 
+    "servername" -OperationMasterRole 0,1,2,3,4
 </code></pre>
 
 <h2>
 <a name="modify-an-attribute-or-attributes-of-all-users-in-an-ou" class="anchor" href="#modify-an-attribute-or-attributes-of-all-users-in-an-ou"><span class="octicon octicon-link"></span></a>Modify an attribute (or attributes) of all users in an OU</h2>
 
-<pre><code>Get-aduser –filter * -SearchBase "ou=YourOU,ou=YourSubOU,ou=YourSubSubOU,dc=yourdomain,dc=com" | set-aduser -PasswordNeverExpires $true
+<pre><code>Get-aduser –filter * -SearchBase 
+    "ou=YourOU,ou=YourSubOU,ou=YourSubSubOU,dc=yourdomain,dc=com" 
+    | set-aduser -PasswordNeverExpires $true
 </code></pre>
 
 <h2>
@@ -125,15 +142,21 @@ Then echoargs will show you how parameters are passed to the external command dn
 
 <p>Note the &amp; prior to the called command; keep this when finally invoking your command.</p>
 
-<pre><code>gc .\stuff.txt | select-string -Pattern "Primary" | foreach {$zone = ($_ -split '\s+')[1]; $callargs = @($server, "/ZoneResetSecondaries", $zone, "/SecureList", "192.168.1.5", "192.168.1.6", "/Notify") ;&amp;c:\bin\echoargs.exe dnscmd $callargs}
+<pre><code>gc .\stuff.txt | select-string -Pattern "Primary" 
+    | foreach {$zone = ($_ -split '\s+')[1]; 
+    $callargs = @($server, "/ZoneResetSecondaries", 
+    $zone, "/SecureList", "192.168.1.5", "192.168.1.6", "/Notify") ;
+    &amp;c:\bin\echoargs.exe dnscmd $callargs}
 </code></pre>
-      </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/jorgecarpio">jorgecarpio</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-      </footer>
+        </section>
+
+        <footer>
+          PowerShell Scripts and Techniques is maintained by <a href="https://github.com/jorgecarpio">jorgecarpio</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
   </body>
 </html>
