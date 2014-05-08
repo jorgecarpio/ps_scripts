@@ -54,6 +54,16 @@
     | Format-table Name,OperatingSystem,PasswordLastSet -Wrap -Auto
 </code></pre>
 
+<p>Run PowerShell scripts with alt credentials</p>
+
+<pre><code>$username = "username"
+# Save password to cred.txt using
+# read-host -assecurestring | convertfrom-securestring | out-file c:\bin\cred.txt
+$password = ConvertTo-SecureString (get-content c:\bin\cred.txt)
+$credentials = new-object -typename System.Management.Automation.PSCredential -argumentlist $username, $password
+start-process powershell.exe -Credential $credentials -argumentlist "-File c:\bin\script.ps1" -wait
+</code></pre>
+
 <h2>
 <a name="list-servers-who-have-computer-passwords-older-than-90-days" class="anchor" href="#list-servers-who-have-computer-passwords-older-than-90-days"><span class="octicon octicon-link"></span></a>List servers who have computer passwords older than 90 days</h2>
 
