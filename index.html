@@ -37,6 +37,11 @@
 <p>Here is a set of PowerShell one-liners, scripts and techniques that I've found useful (but can't always keep on the tip of my tongue).  </p>
 
 <p>You'll need the Active Directory cmdlets for many of these.</p>
+<h2>Dig through all the property values for an AD user; handy if you don't know which specific property to look for</h2>
+<pre><code>get-aduser joesmith -Properties * | foreach-object `
+{ foreach ($property in $_.PSObject.Properties) `
+{ if ($property.value -like "*1234*") `
+{ write-host "$($property.name) $($property.value)" } } }</code></pre>
 
 <h2>
 <a name="list-all-the-windows-servers-in-a-domain-and-export-them-to-csv" class="anchor" href="#list-all-the-windows-servers-in-a-domain-and-export-them-to-csv"><span class="octicon octicon-link"></span></a>List all the Windows servers in a domain and export them to csv</h2>
