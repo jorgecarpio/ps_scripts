@@ -37,6 +37,15 @@
 <p>Here is a set of PowerShell one-liners, scripts and techniques that I've found useful (but can't always keep on the tip of my tongue).  </p>
 
 <p>You'll need the Active Directory cmdlets for many of these.</p>
+
+<h2>Pass variable strings to filter blocks for commands like get-aduser</h2>
+<p>Useful because PowerShell doesn't handle quotes well.  Piping $name right to get-aduser's filter block here will not force interpolation on the string.</p> 
+<p>This example will get names from a list and move then to an OU</p>
+<pre><code>foreach ($name in (gc .\names.txt)) {
+$user = "*$name*"
+get-aduser -filter "name -eq '$user'" | Move-ADObject -TargetPath $ou -WhatIf
+}</code></pre>
+
 <h2>Dig through all the property values for an AD user; handy if you don't know which specific property to look for</h2>
 <pre><code>get-aduser joesmith -Properties * | foreach-object `
 { foreach ($property in $_.PSObject.Properties) `
