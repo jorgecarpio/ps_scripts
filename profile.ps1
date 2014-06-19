@@ -16,3 +16,21 @@ Function like ($type, $name) {
 	$command = "get-ad" + $type
 	& $command -filter @callargs
 }
+
+function map ($fn, $a)
+{
+	for ($i = 0; $i -lt $a.length; $i++)
+	{
+	&$fn $a[$i]
+	}
+}
+
+function reduce ($fn, $a, $init)
+{
+	$s = $init
+	for ($i = 0; $i -lt $a.length; $i++)
+	{
+	$s = &$fn $s $a[$i]
+	}
+	return $s
+}
