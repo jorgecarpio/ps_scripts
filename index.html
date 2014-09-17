@@ -34,9 +34,14 @@
         <h3>
 <a name="powershell-scripts-and-techniques" class="anchor" href="#powershell-scripts-and-techniques"><span class="octicon octicon-link"></span></a>PowerShell Scripts and Techniques</h3>
 
-<p>Here is a set of PowerShell one-liners, scripts and techniques that I've found useful (but can't always keep on the tip of my tongue).  </p>
+<p>Here is a set of PowerShell one-liners, links, scripts and techniques that I've found useful (but can't always keep on the tip of my tongue).  </p>
 
 <p>You'll need the Active Directory cmdlets for many of these.</p>
+
+<h2>Interesting PowerShell links</h2>
+<p><a href="http://mikepfeiffer.net/2010/04/working-with-duplicate-array-values-in-powershell/">Find dupes in an array</a></p>
+<p><a href="http://gallery.technet.microsoft.com/scriptcenter/Get-nested-group-15f725f2">Get nested AD Group membership</a></p>
+<p><a href="http://gallery.technet.microsoft.com/scriptcenter/Get-LockedOutLocation-b2fd0cab">Find the machine locking an AD account</a></p>
 
 <h2>Pass variable strings to filter blocks for commands like get-aduser</h2>
 <p>Useful because PowerShell doesn't handle quotes well.  Piping $name right to get-aduser's filter block here will not force interpolation on the string.</p> 
