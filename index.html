@@ -43,6 +43,10 @@
 <p><a href="http://gallery.technet.microsoft.com/scriptcenter/Get-nested-group-15f725f2">Get nested AD Group membership</a></p>
 <p><a href="http://gallery.technet.microsoft.com/scriptcenter/Get-LockedOutLocation-b2fd0cab">Find the machine locking an AD account</a></p>
 
+<h2>Find ALL the groups a user is a member of</h2>
+<p>Because dsa.msc only gives a superficial list</p>
+<pre><code>get-adgroup -LDAPFilter "(member:1.2.840.113556.1.4.1941:=CN=Wallace, David F.,OU=TheUsers,DC=domain,DC=com)" </code></pre>
+
 <h2>Pass variable strings to filter blocks for commands like get-aduser</h2>
 <p>Useful because PowerShell doesn't handle quotes well.  Piping $name right to get-aduser's filter block here will not force interpolation on the string.</p> 
 <p>This example will get names from a list and move then to an OU</p>
