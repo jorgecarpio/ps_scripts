@@ -42,6 +42,12 @@
 <p><a href="http://mikepfeiffer.net/2010/04/working-with-duplicate-array-values-in-powershell/">Find dupes in an array</a></p>
 <p><a href="http://gallery.technet.microsoft.com/scriptcenter/Get-nested-group-15f725f2">Get nested AD Group membership</a></p>
 <p><a href="http://gallery.technet.microsoft.com/scriptcenter/Get-LockedOutLocation-b2fd0cab">Find the machine locking an AD account</a></p>
+<p><a href="http://shabaztech.com/exporting-multivalued-attributes-export-csv-cmdlet/">Exporting multivalued attributes with Export-CSV cmdlet</a></p>
+
+<h2>CSV of memberof attribute (expanded) for users</h2>
+<p>This correctly retrieve multi-valued attributes like memberof, and gets the name of the group, not just DN</p>
+<pre><code>get-aduser -Filter * -SearchBase "dc=yourdomain,dc=com" -Properties * | Select-Object samaccountname,@{n='MemberOf'; e={ ( $_.memberof|`
+% {(Get-ADObject $_).Name }) -join ","}} | Sort-Object -Property samaccountname | export-csv usergroups.csv -NoTypeInformation -Encoding utf8</code></pre>
 
 <h2>Find ALL the groups a user is a member of</h2>
 <p>Because dsa.msc only gives a superficial list</p>
